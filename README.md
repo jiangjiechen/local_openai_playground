@@ -3,6 +3,8 @@
 
 Local entry for accessing OpenAI LLMs with OpenAI API.
 
+[!demo](/images/demo.jpg)
+
 ## How to run
 
 1. Install dependencies

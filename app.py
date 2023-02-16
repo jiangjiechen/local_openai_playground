@@ -109,7 +109,7 @@ iface = gr.Interface(
     title="Local OpenAI Playground",
     layout="horizontal",
     enable_queue=True,
-    allow_flagging='auto',
+    allow_flagging=True,
     flagging_options=['Interesting!', 'Wrong!'],
 )
 

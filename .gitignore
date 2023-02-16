@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 logs/
 flagged/
+
+.DS_Store
