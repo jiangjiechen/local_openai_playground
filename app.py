@@ -92,7 +92,7 @@ def run(apikey, model_name, input_prompt, temperature, max_new_tokens):
         'max_new_tokens': max_new_tokens,
         'model_output': response,
     }
-    logger.info(json.dumps(info) + '\n')
+    logger.info(json.dumps(info, ensure_ascii=False) + '\n')
     return response
 
 
