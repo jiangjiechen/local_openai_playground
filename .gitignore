@@ -131,3 +131,5 @@ logs/
 flagged/
 
 .DS_Store
+eden.py
+app.public.py
