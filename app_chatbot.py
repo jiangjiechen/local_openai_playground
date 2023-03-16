@@ -62,9 +62,9 @@ def convert_chatgpt_history(x, backward=False):
 
 with gr.Blocks() as demo:
     api_key = gr.Textbox(placeholder='Your OpenAI API KEY here', type='password', show_progress=False, label='Your OpenAI API KEY')
-    system_input = gr.Textbox(placeholder="e.g., You are a helpful assistant.", max_lines=500, show_progress=False, label='System Input')
-    chatbot = gr.Chatbot(scroll_to_output=True, queue=True, show_progress=True)
-    msg = gr.Textbox()
+    system_input = gr.Textbox(placeholder="e.g., You are a helpful assistant.", max_lines=500, show_progress=False, label='System')
+    chatbot = gr.Chatbot()
+    msg = gr.Textbox(label='User Input')
     clear = gr.Button("Clear")
 
     def user(user_message, history):
