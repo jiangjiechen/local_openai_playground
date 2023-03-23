@@ -7,6 +7,12 @@ import sys
 from utils import init_logger
 
 
+def clean_br(history):
+    for x in history:
+        x['content'] = x['content'].replace('<br>', '')
+    return history
+
+
 def prompt_chatgpt(system_input, user_input, history=[], model_name='gpt-3.5-turbo'):
     '''
     :param system_input: "You are a helpful assistant/translator."
@@ -18,14 +24,16 @@ def prompt_chatgpt(system_input, user_input, history=[], model_name='gpt-3.5-tur
     return: assistant_output, (updated) history, money cost
     '''
     if len(history) == 0:
+        if system_input.strip() == '': system_input = 'You are a helpful assistant.'
         history = [{"role": "system", "content": system_input}]
     history.append({"role": "user", "content": user_input})
 
     for _ in range(3):
         try:
+            history = clean_br(history)
             completion = openai.ChatCompletion.create(
                 model=model_name,
-                messages=history
+                messages=history,
             )
             break
         except:
@@ -44,14 +52,13 @@ def convert_chatgpt_history(x, backward=False):
     # input: [{'role': 'user', 'content': 'xxx'}, {'role': 'assistant', 'content': 'yyy'}]
     # output: [[xxx, yyy], ...]
     
-    # input -> output
     output = []
-    if backward:
+    if backward:    # output -> input
         for i in range(len(x)):
             output.append({"role": 'user', "content": x[i][0]})
             if x[i][1] is not None:
                 output.append({"role": 'assistant', "content": x[i][1]})
-    else:
+    else:           # input -> output
         for i in range(len(x)):
             if i % 2 == 0:
                 output.append([x[i]['content']])
