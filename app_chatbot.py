@@ -4,7 +4,7 @@ import time
 import openai
 import os
 import sys
-from utils import init_logger
+from utils import init_logger, GPT3_NAME_AND_COST
 
 
 def clean_br(history):
@@ -68,6 +68,7 @@ def convert_chatgpt_history(x, backward=False):
 
 
 with gr.Blocks() as demo:
+    gpt_model_name = gr.Dropdown(['gpt-3.5-turbo', 'gpt-4'], value='gpt-3.5-turbo')
     api_key = gr.Textbox(placeholder='Your OpenAI API KEY here', type='password', show_progress=False, label='Your OpenAI API KEY')
     system_input = gr.Textbox(placeholder="e.g., You are a helpful assistant.", max_lines=500, show_progress=False, label='System')
     chatbot = gr.Chatbot()
@@ -77,7 +78,7 @@ with gr.Blocks() as demo:
     def user(user_message, history):
         return "", history + [[user_message, None]]
 
-    def bot(key, sys_in, history):
+    def bot(model_name, key, sys_in, history):
         # bot_message = random.choice(["Yes", "No"])
         openai.api_key = key
         user_input = history[-1][0]
@@ -85,14 +86,14 @@ with gr.Blocks() as demo:
         chatgpt_history = convert_chatgpt_history(history[:-1], backward=True)
         
         chatgpt_history = [{"role": "system", "content": sys_in}] + chatgpt_history
-        _, chatgpt_history = prompt_chatgpt(sys_in, user_input, chatgpt_history)
+        _, chatgpt_history = prompt_chatgpt(sys_in, user_input, chatgpt_history, model_name)
         logger.info(chatgpt_history)
         
         history = convert_chatgpt_history(chatgpt_history[1:])
         return history
     
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-        bot, [api_key, system_input, chatbot], [chatbot]
+        bot, [gpt_model_name, api_key, system_input, chatbot], [chatbot]
     )
     clear.click(lambda: None, None, chatbot, queue=False)
 
