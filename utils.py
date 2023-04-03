@@ -32,7 +32,7 @@ def init_logger(log_file=None, log_file_level=logging.INFO, from_scratch=False):
 GPT3_NAME_AND_COST = {
     'text-davinci-003': 0.02,
     'text-davinci-002': 0.02,
-    'code-davinci-002': 0,
+    # 'code-davinci-002': 0,
     'text-davinci-001': 0.02,
     'davinci': 0.02,
     'text-curie-001': 0.002,
