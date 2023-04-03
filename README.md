@@ -5,6 +5,8 @@ Local entry for accessing OpenAI LLMs with OpenAI API.
 
 ![demo](/images/demo.jpg)
 
+![chatbot](/images/chatbot.jpg)
+
 ## How to run
 
 1. Install dependencies
@@ -29,7 +31,7 @@ python3 app_chatbot.py
 
 3. Open the browser and go to `YOUR URL`
 
-4. Input your **OpenAI API key** and everything and click `SUBMIT` or press ENTER (For ChatBot)
+4. Input your **OpenAI API key** (or run `export OPENAI_API_KEY=xxx`) and everything and click `SUBMIT` or press ENTER (For ChatBot)
 
 5. Enjoy your local OpenAI Playground!
 
