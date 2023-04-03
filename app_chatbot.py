@@ -13,7 +13,7 @@ def clean_br(history):
     return history
 
 
-def prompt_chatgpt(system_input, user_input, history=[], model_name='gpt-3.5-turbo'):
+def prompt_chatgpt(system_input, user_input, history=[], model_name='gpt-3.5-turbo', max_tokens=128, stream=True):
     '''
     :param system_input: "You are a helpful assistant/translator."
     :param user_input: you texts here
@@ -28,24 +28,25 @@ def prompt_chatgpt(system_input, user_input, history=[], model_name='gpt-3.5-tur
         history = [{"role": "system", "content": system_input}]
     history.append({"role": "user", "content": user_input})
 
-    for _ in range(3):
-        try:
-            history = clean_br(history)
-            completion = openai.ChatCompletion.create(
-                model=model_name,
-                messages=history,
-            )
-            break
-        except:
-            error = sys.exc_info()[0]
-            print("API error:", error)
-            time.sleep(1)
-
-    assistant_output = completion['choices'][0]['message']['content']
-    history.append({"role": "assistant", "content": assistant_output})
-    # total_tokens = completion['usage']['total_tokens']
-
-    return assistant_output, history
+    history = clean_br(history)
+    completion = openai.ChatCompletion.create(
+        model=model_name,
+        messages=history,
+        max_tokens=max_tokens,
+        stream=stream,
+    )
+    if stream:
+        assistant_output = ""
+        for chunk in completion:
+            word = chunk['choices'][0]['delta']
+            if len(word) > 0 and word.get('role') is None:
+                assistant_output += word['content']
+                yield assistant_output, history
+    else:
+        assistant_output = completion['choices'][0]['message']['content']
+        history.append({"role": "assistant", "content": assistant_output})
+        # total_tokens = completion['usage']['total_tokens']
+        return assistant_output, history
 
 
 def convert_chatgpt_history(x, backward=False):
@@ -67,9 +68,23 @@ def convert_chatgpt_history(x, backward=False):
     return output
 
 
-with gr.Blocks() as demo:
-    gpt_model_name = gr.Dropdown(['gpt-3.5-turbo', 'gpt-4'], value='gpt-3.5-turbo')
-    api_key = gr.Textbox(placeholder='Your OpenAI API KEY here', type='password', show_progress=False, label='Your OpenAI API KEY')
+def bot(model_name, sys_in, history):
+    user_input = history[-1][0]
+
+    chatgpt_history = convert_chatgpt_history(history[:-1], backward=True)
+    
+    chatgpt_history = [{"role": "system", "content": sys_in}] + chatgpt_history
+    for i, (output, chatgpt_history) in enumerate(prompt_chatgpt(sys_in, user_input, chatgpt_history, model_name)):
+        item = {"role": "assistant", "content": output}
+        if i == 0:
+            chatgpt_history += [item]
+        else:
+            chatgpt_history = chatgpt_history[:-1] + [item]
+        yield convert_chatgpt_history(chatgpt_history[1:])
+
+
+with gr.Blocks(title='Local OpenAI Chatbot') as demo:
+    model_name = gr.Dropdown(['gpt-3.5-turbo', 'gpt-4'], label='Models', value='gpt-3.5-turbo')
     system_input = gr.Textbox(placeholder="e.g., You are a helpful assistant.", max_lines=500, show_progress=False, label='System')
     chatbot = gr.Chatbot()
     msg = gr.Textbox(label='User Input')
@@ -77,27 +92,14 @@ with gr.Blocks() as demo:
 
     def user(user_message, history):
         return "", history + [[user_message, None]]
-
-    def bot(model_name, key, sys_in, history):
-        # bot_message = random.choice(["Yes", "No"])
-        openai.api_key = key
-        user_input = history[-1][0]
-
-        chatgpt_history = convert_chatgpt_history(history[:-1], backward=True)
-        
-        chatgpt_history = [{"role": "system", "content": sys_in}] + chatgpt_history
-        _, chatgpt_history = prompt_chatgpt(sys_in, user_input, chatgpt_history, model_name)
-        logger.info(chatgpt_history)
-        
-        history = convert_chatgpt_history(chatgpt_history[1:])
-        return history
     
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-        bot, [gpt_model_name, api_key, system_input, chatbot], [chatbot]
+        bot, [model_name, system_input, chatbot], [chatbot]
     )
     clear.click(lambda: None, None, chatbot, queue=False)
 
 
 if __name__ == "__main__":
+    openai.api_key = os.environ['OPENAI_API_KEY']
     logger = init_logger('logs/chatbot.log')
-    demo.launch()
+    demo.launch(enable_queue=True)
