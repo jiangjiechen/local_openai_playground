@@ -46,7 +46,7 @@ def prompt_chatgpt(system_input, user_input, history=[], model_name='gpt-3.5-tur
         assistant_output = completion['choices'][0]['message']['content']
         history.append({"role": "assistant", "content": assistant_output})
         # total_tokens = completion['usage']['total_tokens']
-        return assistant_output, history
+        yield assistant_output, history
 
 
 def convert_chatgpt_history(x, backward=False):

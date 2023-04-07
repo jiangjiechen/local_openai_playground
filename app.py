@@ -26,7 +26,7 @@ def prompt_gpt3(prompt_input: str, model_name='text-davinci-003',
     else:
         # handle error batch
         text = response if isinstance(response, str) else response['choices'][0]['text']
-        return text
+        yield text
 
 
 def run(model_name, input_prompt, temperature, max_new_tokens):
