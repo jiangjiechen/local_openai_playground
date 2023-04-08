@@ -88,7 +88,10 @@ with gr.Blocks(title='Local OpenAI Chatbot') as demo:
     system_input = gr.Textbox(placeholder="e.g., You are a helpful assistant.", max_lines=500, show_progress=False, label='System')
     chatbot = gr.Chatbot()
     msg = gr.Textbox(label='User Input')
-    clear = gr.Button("Clear")
+    with gr.Row():
+        btn_send = gr.Button(value="Submit", variant="primary", interactive=True)
+        btn_clear = gr.Button(value="Clear", interactive=True)
+        btn_list = [btn_send, btn_clear]
 
     def user(user_message, history):
         return "", history + [[user_message, None]]
@@ -96,7 +99,10 @@ with gr.Blocks(title='Local OpenAI Chatbot') as demo:
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
         bot, [model_name, system_input, chatbot], [chatbot]
     )
-    clear.click(lambda: None, None, chatbot, queue=False)
+    btn_send.click(user, [msg, chatbot], [msg, chatbot], queue=False).then(
+        bot, [model_name, system_input, chatbot], [chatbot]
+    )
+    btn_clear.click(lambda: None, None, chatbot, queue=False)
 
 
 if __name__ == "__main__":
