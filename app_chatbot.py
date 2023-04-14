@@ -7,13 +7,8 @@ import sys
 from utils import init_logger, GPT3_NAME_AND_COST
 
 
-def clean_br(history):
-    for x in history:
-        x['content'] = x['content'].replace('<br>', '')
-    return history
-
-
-def prompt_chatgpt(system_input, user_input, history=[], model_name='gpt-3.5-turbo', max_tokens=128, stream=True):
+def prompt_chatgpt(system_input, user_input, history=[], temperature=0.7, 
+                   max_tokens=256, model_name='gpt-3.5-turbo', stream=True):
     '''
     :param system_input: "You are a helpful assistant/translator."
     :param user_input: you texts here
@@ -28,12 +23,12 @@ def prompt_chatgpt(system_input, user_input, history=[], model_name='gpt-3.5-tur
         history = [{"role": "system", "content": system_input}]
     history.append({"role": "user", "content": user_input})
 
-    history = clean_br(history)
     completion = openai.ChatCompletion.create(
         model=model_name,
         messages=history,
-        max_tokens=max_tokens,
+        max_tokens=int(max_tokens),
         stream=stream,
+        temperature=temperature,
     )
     if stream:
         assistant_output = ""
@@ -68,13 +63,15 @@ def convert_chatgpt_history(x, backward=False):
     return output
 
 
-def bot(model_name, sys_in, history):
+def bot(model_name, sys_in, history, temperature, max_tokens):
     user_input = history[-1][0]
 
     chatgpt_history = convert_chatgpt_history(history[:-1], backward=True)
     
     chatgpt_history = [{"role": "system", "content": sys_in}] + chatgpt_history
-    for i, (output, chatgpt_history) in enumerate(prompt_chatgpt(sys_in, user_input, chatgpt_history, model_name)):
+    for i, (output, chatgpt_history) in enumerate(prompt_chatgpt(sys_in, user_input, chatgpt_history, 
+                                                                 temperature=temperature, max_tokens=max_tokens,
+                                                                 model_name=model_name)):
         item = {"role": "assistant", "content": output}
         if i == 0:
             chatgpt_history += [item]
@@ -85,9 +82,13 @@ def bot(model_name, sys_in, history):
 
 with gr.Blocks(title='Local OpenAI Chatbot') as demo:
     model_name = gr.Dropdown(['gpt-3.5-turbo', 'gpt-4'], label='Models', value='gpt-3.5-turbo')
-    system_input = gr.Textbox(placeholder="e.g., You are a helpful assistant.", max_lines=500, show_progress=False, label='System')
+    system_input = gr.Textbox(placeholder="e.g., You are a helpful assistant.", max_lines=500, label='System')
     chatbot = gr.Chatbot()
     msg = gr.Textbox(label='User Input')
+    with gr.Row():
+        temperature = gr.Slider(0, 1, value=0.7, label='Temperature')
+        max_tokens = gr.Number(value=256) # max_new_tokens
+    
     with gr.Row():
         btn_send = gr.Button(value="Submit", variant="primary", interactive=True)
         btn_clear = gr.Button(value="Clear", interactive=True)
@@ -96,16 +97,17 @@ with gr.Blocks(title='Local OpenAI Chatbot') as demo:
     def user(user_message, history):
         return "", history + [[user_message, None]]
     
-    msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-        bot, [model_name, system_input, chatbot], [chatbot]
+    msg.submit(user, [msg, chatbot], [msg, chatbot], queue=True).then(
+        bot, [model_name, system_input, chatbot, temperature, max_tokens], [chatbot]
     )
-    btn_send.click(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-        bot, [model_name, system_input, chatbot], [chatbot]
+    btn_send.click(user, [msg, chatbot], [msg, chatbot], queue=True).then(
+        bot, [model_name, system_input, chatbot, temperature, max_tokens], [chatbot]
     )
-    btn_clear.click(lambda: None, None, chatbot, queue=False)
+    btn_clear.click(lambda: None, None, chatbot, queue=True)
 
 
 if __name__ == "__main__":
     openai.api_key = os.environ['OPENAI_API_KEY']
     logger = init_logger('logs/chatbot.log')
+    demo.queue(concurrency_count=3)
     demo.launch(enable_queue=True)

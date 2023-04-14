@@ -1,4 +1,4 @@
-gradio
+gradio>=3.26.0
 openai
 tqdm
 coloredlogs

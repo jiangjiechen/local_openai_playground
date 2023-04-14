@@ -58,7 +58,7 @@ iface = gr.Interface(
         # gr.Textbox(placeholder='Your OpenAI API KEY here', type='password', max_lines=500), # apikey
         gr.Dropdown(list(GPT3_NAME_AND_COST.keys()), value='text-davinci-003'), # model_name
         gr.Textbox(placeholder="Your prompt here"), # input_prompt
-        gr.Slider(0, 2, value=0.9, label='Temperature'),  # temperature
+        gr.Slider(0, 1, value=0.7, label='Temperature'),  # temperature
         gr.Number(value=100), # max_new_tokens
         ],
     outputs=gr.Textbox(label='Output'),
@@ -69,6 +69,7 @@ iface = gr.Interface(
 )
 
 logger = init_logger('logs/playground.log')
+iface.queue(concurrency_count=3)
 iface.launch(
     enable_queue=True,
 )
