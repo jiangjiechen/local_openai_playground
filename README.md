@@ -5,7 +5,7 @@ An easy-to-use local entry for accessing OpenAI and (deployed) HuggingFace LLMs 
 
 ## Examples
 
-![chatbot](/images/chatbot.jpg)
+![chatbot](/images/chatbot.png)
 
 ![demo](/images/demo.jpg)
 

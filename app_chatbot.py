@@ -99,6 +99,8 @@ def bot(model_name, sys_in, history, temperature, max_tokens):
 
 
 with gr.Blocks(title='Local OpenAI Chatbot') as demo:
+    gr.Markdown('''<h1><center>Local OpenAI Chatbot</center></h1>''')
+
     enable_btn = gr.Button.update(interactive=True)
     disable_btn = gr.Button.update(interactive=False)
     no_change_btn = gr.Button.update()
