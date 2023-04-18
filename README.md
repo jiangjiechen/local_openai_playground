@@ -1,11 +1,14 @@
 # Local OpenAI Playground
 
 
-Local entry for accessing OpenAI LLMs with OpenAI API.
+An easy-to-use local entry for accessing OpenAI and (deployed) HuggingFace LLMs with OpenAI-style API. Support basic chatbot functions with `gradio`.
+
+## Examples
+
+![chatbot](/images/chatbot.jpg)
 
 ![demo](/images/demo.jpg)
 
-![chatbot](/images/chatbot.jpg)
 
 ## How to run
 
@@ -17,21 +20,27 @@ pip install -r requirements.txt
 
 2. Run the server 
 
-For InstructGPT, Codex or GPT-3, run
+For InstructGPT or GPT-3, run
 
 ```bash
 python3 app.py
 ```
 
-For ChatGPT, run
+For ChatGPT, GPT-4, run
 
 ```bash
 python3 app_chatbot.py
 ```
 
+For your own HuggingFace models (see [basaran](https://github.com/hyperonym/basaran)), run
+
+```bash
+python3 app_chatbot_hf.py
+```
+
 3. Open the browser and go to `YOUR URL`
 
-4. Input your **OpenAI API key** (or run `export OPENAI_API_KEY=xxx`) and everything and click `SUBMIT` or press ENTER (For ChatBot)
+4. Input your **OpenAI API key** (or run `export OPENAI_API_KEY=xxx` beforehand) and everything and click `SUBMIT` or press ENTER (For ChatBot)
 
 5. Enjoy your local OpenAI Playground!
 
