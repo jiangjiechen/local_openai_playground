@@ -147,7 +147,7 @@ with gr.Blocks(title='Local HuggingFace Chatbot') as demo:
     msg = gr.Textbox(label='User Input')
     with gr.Row():
         temperature = gr.Slider(0, 1, value=0.7, label='Temperature')
-        max_tokens = gr.Number(value=256) # max_new_tokens
+        max_tokens = gr.Number(value=256, label='Max Tokens') # max_new_tokens
     
     with gr.Row():
         btn_send = gr.Button(value="Submit", variant="primary", interactive=True)    
