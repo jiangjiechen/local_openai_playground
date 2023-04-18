@@ -63,8 +63,23 @@ def convert_chatgpt_history(x, backward=False):
     return output
 
 
+def regenerate(model_name, sys_in, history, temperature, max_tokens):
+    history = history[:-1]
+    if len(history) > 0:
+        history[-1][1] = None
+    else:
+        # for empty input check in `bot()`
+        history.append(['', None])
+    yield from bot(model_name, sys_in, history, temperature, max_tokens)
+
+
 def bot(model_name, sys_in, history, temperature, max_tokens):
+    yield history, disable_btn, disable_btn, disable_btn
     user_input = history[-1][0]
+    if user_input.strip() == '': # empty input check
+        history = history[:-1]
+        yield history, enable_btn, enable_btn, enable_btn
+        return
 
     chatgpt_history = convert_chatgpt_history(history[:-1], backward=True)
     
@@ -77,10 +92,17 @@ def bot(model_name, sys_in, history, temperature, max_tokens):
             chatgpt_history += [item]
         else:
             chatgpt_history = chatgpt_history[:-1] + [item]
-        yield convert_chatgpt_history(chatgpt_history[1:])
+        yield convert_chatgpt_history(chatgpt_history[1:]), disable_btn, disable_btn, disable_btn
+
+    logger.info(chatgpt_history)
+    yield convert_chatgpt_history(chatgpt_history[1:]), enable_btn, enable_btn, enable_btn
 
 
 with gr.Blocks(title='Local OpenAI Chatbot') as demo:
+    enable_btn = gr.Button.update(interactive=True)
+    disable_btn = gr.Button.update(interactive=False)
+    no_change_btn = gr.Button.update()
+
     model_name = gr.Dropdown(['gpt-3.5-turbo', 'gpt-4'], label='Models', value='gpt-3.5-turbo')
     system_input = gr.Textbox(placeholder="e.g., You are a helpful assistant.", max_lines=500, label='System')
     chatbot = gr.Chatbot()
@@ -90,24 +112,29 @@ with gr.Blocks(title='Local OpenAI Chatbot') as demo:
         max_tokens = gr.Number(value=256) # max_new_tokens
     
     with gr.Row():
-        btn_send = gr.Button(value="Submit", variant="primary", interactive=True)
-        btn_clear = gr.Button(value="Clear", interactive=True)
-        btn_list = [btn_send, btn_clear]
-
+        btn_send = gr.Button(value="Submit", variant="primary", interactive=True)    
+        # btn_stop = gr.Button(value='Stop', interactive=True)
+        btn_regenerate = gr.Button(value='Regenerate', interactive=True)
+        
+    btn_clear = gr.Button(value="Clear", interactive=True)
+    btn_list = [btn_send, btn_clear, btn_regenerate]
+    
     def user(user_message, history):
         return "", history + [[user_message, None]]
     
-    msg.submit(user, [msg, chatbot], [msg, chatbot], queue=True).then(
-        bot, [model_name, system_input, chatbot, temperature, max_tokens], [chatbot]
+    msg.submit(user, [msg, chatbot], [msg, chatbot]).then(
+        bot, [model_name, system_input, chatbot, temperature, max_tokens], [chatbot] + btn_list
     )
-    btn_send.click(user, [msg, chatbot], [msg, chatbot], queue=True).then(
-        bot, [model_name, system_input, chatbot, temperature, max_tokens], [chatbot]
+    btn_send.click(user, [msg, chatbot], [msg, chatbot]).then(
+        bot, [model_name, system_input, chatbot, temperature, max_tokens], [chatbot] + btn_list
     )
-    btn_clear.click(lambda: None, None, chatbot, queue=True)
-
+    btn_regenerate.click(user, [msg, chatbot], [msg, chatbot]).then(
+        regenerate, [model_name, system_input, chatbot, temperature, max_tokens], [chatbot] + btn_list
+    )
+    btn_clear.click(lambda: None, None, chatbot)
+    
 
 if __name__ == "__main__":
     openai.api_key = os.environ['OPENAI_API_KEY']
     logger = init_logger('logs/chatbot.log')
-    demo.queue(concurrency_count=3)
-    demo.launch(enable_queue=True)
+    demo.queue(concurrency_count=3).launch()
