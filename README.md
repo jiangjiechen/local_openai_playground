@@ -1,4 +1,4 @@
-# Local OpenAI Playground
+# Local LLM Playground
 
 
 An easy-to-use local entry for accessing OpenAI and (deployed) HuggingFace LLMs with OpenAI-style API. Support basic chatbot functions with `gradio`.
