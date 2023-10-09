@@ -105,13 +105,13 @@ with gr.Blocks(title='Local OpenAI Chatbot') as demo:
     disable_btn = gr.Button.update(interactive=False)
     no_change_btn = gr.Button.update()
 
-    model_name = gr.Dropdown(['gpt-3.5-turbo', 'gpt-4'], label='Models', value='gpt-3.5-turbo')
-    system_input = gr.Textbox(placeholder="e.g., You are a helpful assistant.", max_lines=500, label='System')
+    model_name = gr.Dropdown(['gpt-3.5-turbo', 'gpt-4'], label='Models', value='gpt-4')
+    system_input = gr.Textbox(placeholder="e.g., You are a helpful assistant.", max_lines=500, label='System', visible=False)
     chatbot = gr.Chatbot()
     msg = gr.Textbox(label='User Input')
     with gr.Row():
-        temperature = gr.Slider(0, 1, value=0.7, label='Temperature')
-        max_tokens = gr.Number(value=256, label='Max Tokens') # max_new_tokens
+        temperature = gr.Slider(0, 1, value=0.7, label='Temperature', visible=False)
+        max_tokens = gr.Number(value=1024, label='Max Tokens', visible=False) # max_new_tokens
     
     with gr.Row():
         btn_send = gr.Button(value="Submit", variant="primary", interactive=True)    
@@ -139,4 +139,4 @@ with gr.Blocks(title='Local OpenAI Chatbot') as demo:
 if __name__ == "__main__":
     openai.api_key = os.environ['OPENAI_API_KEY']
     logger = init_logger('logs/chatbot.log')
-    demo.queue(concurrency_count=3).launch()
+    demo.queue(concurrency_count=3).launch(share=True)
